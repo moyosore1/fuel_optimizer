@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 from datetime import timedelta
 from typing import Dict
 
@@ -13,8 +14,8 @@ from .models import RouteCache
 class RoutingService:
 
     def __init__(self):
-        self.api_key = ""
-        self.base_url = ""
+        self.api_key = os.getenv("OPEN_ROUTE_API_KEY")
+        self.base_url = os.getenv("OPEN_ROUTE_BASE_URL")
         self.cache_ttl_days = 7
 
     def get_route(self, start: str, end: str):

@@ -3,22 +3,21 @@ import os
 from .base import *  # noqa F401
 
 DEBUG = os.getenv("DEBUG")
-print(DEBUG)
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql_psycopg2",
-#         "NAME": os.getenv("DATABASE_NAME"),
-#         "USER": os.getenv("DATABASE_USER"),
-#         "PASSWORD": os.getenv("DATABASE_PASSWORD"),
-#         "HOST": os.getenv("DATABASE_HOST"),
-#         "PORT": 5432,
-#         "ATOMIC_REQUESTS": True,
-#         "CONN_MAX_AGE": 600
-#     }
-# }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST"),
+        "PORT": 5432,
+        "ATOMIC_REQUESTS": True,
+        "CONN_MAX_AGE": 600,
+    }
+}
 
 LOGGING = {
     "version": 1,
