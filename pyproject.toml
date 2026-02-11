@@ -1,0 +1,51 @@
+[project]
+name = "fuel-optimizer"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Moyo Olumide",email = "moyosoreolumideobi@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django (==6.0.2)",
+    "djangorestframework (>=3.16.1,<4.0.0)",
+    "psycopg2 (>=2.9.11,<3.0.0)",
+    "python-dotenv (>=1.2.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pre-commit (>=4.5.1,<5.0.0)",
+    "black (>=26.1.0,<27.0.0)"
+]
+
+[tool.black]
+line-length = 119
+target-version = ["py313"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 5
+line_length = 119
+combine_as_imports = true
+include_trailing_comma = true
+use_parentheses = true
+skip_gitignore = true
+
+
+known_django = ["django"]
+known_drf = ["rest_framework", "rest_framework_simplejwt", "drf_spectacular"]
+known_first_party = ["fuel_optimizer"]
+
+sections = ["FUTURE", "STDLIB", "DJANGO", "DRF", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+
+[tool.flake8]
+max-line-length = 119
+extend-ignore = ["E203", "W503", "A005"] 
