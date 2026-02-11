@@ -1,23 +1,33 @@
-from django.contrib.gis.db.models.functions import Distance
+from __future__ import annotations
+
 from django.contrib.gis.geos import LineString
-from django.contrib.gis.measure import D
+from django.db.models import Count
 
-from stations.models import FuelStation
+from fuel_optimizer.stations.models import FuelStation, USState
 
 
-def find_stations_along_route(route_linestring, corridor_width_miles=25):
+def get_states_for_route(route_geometry: dict) -> list[str]:
 
-    coords = route_linestring["coordinates"]
+    coords = route_geometry.get("coordinates") or []
+    if len(coords) < 2:
+        return []
+
     line = LineString(coords, srid=4326)
 
-    nearby_stations = (
-        FuelStation.objects.filter(
-            location__isnull=False,
-            geocode_status="success",
-            location__distance_lte=(line, D(mi=corridor_width_miles)),
-        )
-        .annotate(distance_from_route=Distance("location", line))
-        .order_by("distance_from_route")
-    )
+    return list(USState.objects.filter(geom__intersects=line).values_list("code", flat=True).order_by("code"))
 
-    return nearby_stations
+
+def get_cheapest_stations_by_states(states: list[str]) -> dict[str, FuelStation]:
+
+    if not states:
+        return {}
+
+    states = [s.upper() for s in states]
+
+    qs = FuelStation.objects.filter(state__in=states).order_by("state", "retail_price").distinct("state")
+
+    return {s.state.upper(): s for s in qs}
+
+
+def get_station_count_by_state():
+    return FuelStation.objects.values("state").annotate(count=Count("id")).order_by("-count")

@@ -1,0 +1,7 @@
+Django==5.2.11
+djangorestframework==3.16.1
+psycopg[binary]==3.3.2
+python-dotenv==1.2.1
+colorlog
+requests
+geopy==2.4.1

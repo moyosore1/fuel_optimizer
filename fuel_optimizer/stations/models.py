@@ -2,7 +2,6 @@ from django.contrib.gis.db import models as gis_models
 from django.db import models
 
 
-# Create your models here.
 class FuelStation(models.Model):
     opis_id = models.IntegerField(unique=True, db_index=True)
     name = models.CharField(max_length=255)
@@ -51,3 +50,12 @@ class FuelStation(models.Model):
     @property
     def longitude(self):
         return self.lng
+
+
+class USState(models.Model):
+    code = models.CharField(max_length=2, unique=True, db_index=True)
+    name = models.CharField(max_length=64)
+    geom = gis_models.MultiPolygonField(srid=4326)
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"

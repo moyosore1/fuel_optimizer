@@ -1,10 +1,10 @@
 import csv
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from stations.models import FuelStation
+from fuel_optimizer.stations.models import FuelStation
 
 
 class Command(BaseCommand):
@@ -96,8 +96,6 @@ class Command(BaseCommand):
                         address=address,
                         city=city,
                         state=state,
-                        latitude=None,
-                        longitude=None,
                         retail_price=retail_price,
                     )
 
@@ -137,7 +135,7 @@ class Command(BaseCommand):
                         self.stdout.write(f"✓ Updated batch of {len(stations_to_update)} stations")
                         stations_to_update = []
 
-                except (ValueError, KeyError, Decimal.InvalidOperation) as e:
+                except (ValueError, KeyError, InvalidOperation) as e:
                     self.stdout.write(self.style.ERROR(f"Row {row_num}: Error - {str(e)}"))
                     error_count += 1
                     continue
@@ -165,7 +163,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"✓ Updated final batch of {len(stations_to_update)} stations")
 
             total_in_db = FuelStation.objects.count()
-            stations_without_coords = FuelStation.objects.filter(latitude__isnull=True, longitude__isnull=True).count()
+            stations_without_coords = FuelStation.objects.filter(location__isnull=True).count()
 
             self.stdout.write(self.style.SUCCESS("\n" + "=" * 60))
             self.stdout.write(self.style.SUCCESS("IMPORT COMPLETE"))

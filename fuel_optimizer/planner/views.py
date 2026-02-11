@@ -5,9 +5,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from routing.service import RoutingService
-
-from .utils import find_optimal_fuel_stops
+from fuel_optimizer.planner.utils import compute_fuel_plan
+from fuel_optimizer.routing.service import RoutingService
 
 
 class RouteOptimizeView(APIView):
@@ -15,7 +14,6 @@ class RouteOptimizeView(APIView):
     def post(self, request):
         start_time = time.time()
 
-        # Get request parameters
         start_location = request.data.get("start")
         end_location = request.data.get("end")
 
@@ -27,75 +25,60 @@ class RouteOptimizeView(APIView):
 
         try:
             routing_service = RoutingService()
+
             route_result = routing_service.get_route(start_location, end_location)
 
             route_geometry = route_result["geometry"]
-            total_distance = route_result["total_distance"]
-            cache_hit = route_result["cache_hit"]
+            total_distance = float(route_result["total_distance"])
+            cache_hit = bool(route_result["cache_hit"])
 
-            optimal_stops = find_optimal_fuel_stops(
-                route_linestring=route_geometry,
-                waypoint_interval=50,
-                station_radius=25,
-            )
+            plan = compute_fuel_plan(route_geometry)
 
-            # Check for errors from optimization
-            if optimal_stops and isinstance(optimal_stops[0], dict) and "error" in optimal_stops[0]:
-                return Response(
-                    {"error": optimal_stops[0]["error"]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            stops = plan.get("stops", [])
+            states = plan.get("states", [])
+            total_cost = Decimal(str(plan.get("total_cost", 0.0)))
+            total_gallons = float(plan.get("total_gallons_bought", 0.0))
 
-            # Step 3: Format response
-            formatted_stops = []
-            total_cost = Decimal("0.00")
-            total_gallons = 0.0
-
-            for idx, stop in enumerate(optimal_stops, start=1):
-                formatted_stops.append(
-                    {
-                        "order": idx,
-                        "station": {
-                            "station_id": stop["station_id"],
-                            "station_name": stop["station_name"],
-                            "address": stop["station_address"],
-                            "city": stop["station_city"],
-                            "state": stop["station_state"],
-                            "price_per_gallon": stop["price_per_gallon"],
-                            "latitude": stop["latitude"],
-                            "longitude": stop["longitude"],
-                        },
-                        "distance_from_start_miles": round(stop["mile_marker"], 2),
-                        "gallons_bought": stop["gallons_bought"],
-                        "cost": Decimal(str(stop["cost"])),
-                        "decision": stop["decision"],
-                    }
-                )
-
-                total_cost += Decimal(str(stop["cost"]))
-                total_gallons += stop["gallons_bought"]
-
-            # Calculate summary
             avg_price = (total_cost / Decimal(str(total_gallons))) if total_gallons > 0 else Decimal("0.00")
 
             summary = {
                 "total_distance_miles": round(total_distance, 2),
-                "total_fuel_gallons": round(total_gallons, 2),
+                "total_fuel_gallons_bought": round(total_gallons, 2),
                 "total_fuel_cost": round(total_cost, 2),
-                "number_of_stops": len(optimal_stops),
-                "average_price_per_gallon": round(avg_price, 5),
+                "number_of_stops": len(stops),
+                "average_price_per_gallon": float(round(avg_price, 5)),
             }
 
-            # Build response
             response_data = {
                 "route": {
                     "start": start_location,
                     "end": end_location,
                     "total_distance_miles": round(total_distance, 2),
-                    "geometry": route_geometry,
+                    # "geometry": route_geometry,
+                    "states_along_route": states,
+                    "approach": "state boundaries via PostGIS + cheapest station per state",
                 },
-                "fuel_stops": formatted_stops,
+                "fuel_stops": [
+                    {
+                        "order": idx,
+                        "mile_marker": s["mile_marker"],
+                        "marker": {
+                            "lat": s["marker_latitude"],
+                            "lng": s["marker_longitude"],
+                        },
+                        "state_at_stop": s.get("state_at_stop"),
+                        "gallons_bought": s["gallons_bought"],
+                        "price_per_gallon": s["price_per_gallon"],
+                        "cost": Decimal(str(s["cost"])),
+                        "decision": s["decision"],
+                        "station": s["station"],
+                        "note": s.get("note"),
+                    }
+                    for idx, s in enumerate(stops, start=1)
+                ],
                 "summary": summary,
+                "assumptions": plan.get("assumptions", {}),
+                "warnings": plan.get("warnings", []),
                 "computation_time_ms": int((time.time() - start_time) * 1000),
                 "cache_hit": cache_hit,
             }
