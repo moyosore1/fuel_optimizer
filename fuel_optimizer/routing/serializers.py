@@ -10,23 +10,6 @@ class RouteOptimizeRequestSerializer(serializers.Serializer):
         max_length=255,
         help_text="End location (e.g., 'New York, NY' or '40.7128,-74.0060')",
     )
-    # max_range = serializers.IntegerField(
-    #     default=500,
-    #     min_value=100,
-    #     max_value=1000,
-    #     help_text="Vehicle's maximum range in miles (default: 500)"
-    # )
-    # mpg = serializers.FloatField(
-    #     default=10.0,
-    #     min_value=1.0,
-    #     max_value=100.0,
-    #     help_text="Miles per gallon (default: 10)"
-    # )
-    # start_fuel_gallons = serializers.FloatField(
-    #     default=0.0,
-    #     min_value=0.0,
-    #     help_text="Starting fuel in tank (default: 0 = empty, needs immediate fill)"
-    # )
 
 
 class StationSerializer(serializers.Serializer):
