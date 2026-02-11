@@ -1,5 +1,3 @@
-# stations/management/commands/geocode_stations.py
-
 import csv
 import io
 import re
