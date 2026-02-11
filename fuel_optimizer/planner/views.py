@@ -1,5 +1,3 @@
-# planner/views.py
-
 import time
 from decimal import Decimal
 
