@@ -3,6 +3,7 @@ import os
 from .base import *  # noqa F401
 
 DEBUG = os.getenv("DEBUG")
+print(DEBUG)
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 

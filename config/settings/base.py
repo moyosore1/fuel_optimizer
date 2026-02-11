@@ -1,5 +1,9 @@
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -21,7 +25,12 @@ DJANGO_APPS = [
 
 
 THIRD_PARTY_APPS = []
-LOCAL_APPS = []
+
+LOCAL_APPS = [
+    "fuel_optimizer.planner",
+    "fuel_optimizer.routing",
+    "fuel_optimizer.stations",
+]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
